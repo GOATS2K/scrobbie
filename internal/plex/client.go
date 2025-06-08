@@ -18,7 +18,7 @@ type Plex interface {
 	GetPin() (response *PlexPinResponse, err error)
 	GetUser(pinId int) (response *PlexPinResponse, err error)
 	GetResources() (resp *PlexResourcesResponse, err error)
-	GetLibraries()
+	GetLibraries() (resp *PlexLibrarySectionResponse, err error)
 	GetPlaybackHistory()
 }
 
@@ -106,8 +106,10 @@ func (c *PlexClient) GetResources() (resp *PlexResourcesResponse, err error) {
 	return doRequest[PlexResourcesResponse](c, req)
 }
 
-func (c *PlexClient) GetLibraries() {
-
+func (c *PlexClient) GetLibraries() (resp *PlexLibrarySectionResponse, err error) {
+	route := "/library/sections"
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", c.Config.ServerUrl, route), nil)
+	return doRequest[PlexLibrarySectionResponse](c, req)
 }
 
 func (c *PlexClient) GetUsers() {

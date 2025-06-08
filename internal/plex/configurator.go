@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/charmbracelet/huh"
@@ -24,7 +25,7 @@ func NewConfigurator(config *config.PlexConfig) *PlexConfigurator {
 }
 
 func (c *PlexConfigurator) NeedsConfiguring() bool {
-	return c.Config.AuthToken == "" || c.Config.ServerUrl == "" || c.Config.ClientIdentifier == ""
+	return c.Config.AuthToken == "" || c.Config.ServerUrl == "" || c.Config.ClientIdentifier == "" || c.Config.LibrarySectionID == 0
 }
 
 func (c *PlexConfigurator) Configure() {
@@ -39,19 +40,64 @@ func (c *PlexConfigurator) Configure() {
 		color.Red("Failed to get auth token.")
 		os.Exit(1)
 	}
+	// user's access token - valid for server if they're the owner
+	c.Config.AuthToken = authToken
 
 	// 3. fetch server list
-	selectedServer := selectServer(client)
+	server, address := selectServer(client)
+	c.Config.ServerUrl = address.URI
+	c.Config.AuthToken = server.AccessToken
 
-	// 4. save target server for history
-	c.Config.ServerUrl = selectedServer
-	c.Config.AuthToken = authToken
+	// 4. select library
+	selectedLibrary := selectLibrary(client)
+	c.Config.LibrarySectionID = selectedLibrary
 }
 
-func selectServer(client *PlexClient) string {
+func selectLibrary(client *PlexClient) int {
+	libraries, err := client.GetLibraries()
+	if err != nil {
+		color.Red(fmt.Sprintf("Failed to get libraries: %s", err.Error()))
+		os.Exit(1)
+	}
+	musicLibraries := util.Filter(libraries.MediaContainer.Directory, func(t *PlexLibrarySectionDirectory) bool {
+		return t.Type == "artist"
+	})
+
+	if len(musicLibraries) == 0 {
+		color.Red("No libraries found.")
+		os.Exit(2)
+	}
+
+	var (
+		options         []huh.Option[string]
+		selectedLibrary string
+	)
+
+	for _, library := range musicLibraries {
+		optionText := fmt.Sprintf("%s - %s", library.Key, library.Title)
+		option := huh.NewOption(optionText, library.Key)
+		options = append(options, option)
+	}
+
+	prompt := huh.NewSelect[string]().
+		Title("Select a music library.").
+		Options(options...).
+		Value(&selectedLibrary)
+
+	if err := prompt.Run(); err != nil {
+		color.Red("Prompt cancelled.")
+		os.Exit(3)
+	}
+
+	libraryId, _ := strconv.Atoi(selectedLibrary)
+
+	return libraryId
+}
+
+func selectServer(client *PlexClient) (*PlexResourceDevice, *PlexResourceDeviceConnection) {
 	resources, err := client.GetResources()
 	if err != nil {
-		color.Red("Failed to get resource list.")
+		color.Red(fmt.Sprintf("Failed to get resource list: %s", err.Error()))
 		os.Exit(1)
 	}
 
@@ -109,7 +155,7 @@ func selectServer(client *PlexClient) string {
 
 	form.Run()
 
-	return selectedAddress.URI
+	return selectedServer, selectedAddress
 }
 
 func authenticateUser(client *PlexClient) (string, error) {

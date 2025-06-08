@@ -17,6 +17,7 @@ type PlexResourceDevice struct {
 	Provides      string                         `xml:"provides,attr" json:"provides,omitempty"`
 	Owned         string                         `xml:"owned,attr" json:"owned,omitempty"`
 	PublicAddress string                         `xml:"publicAddress,attr" json:"publicaddress,omitempty"`
+	AccessToken   string                         `xml:"accessToken,attr" json:"accessToken,omitempty"`
 	Connection    []PlexResourceDeviceConnection `xml:"Connection" json:"connection,omitempty"`
 }
 
