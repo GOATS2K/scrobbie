@@ -67,11 +67,11 @@ func (c *Config) CreateConfigDirectory() (configDir string, err error) {
 	configDirPath := getConfigDir()
 	err = os.MkdirAll(configDirPath, 0755)
 	if err == nil {
-		log.Info("got config dir", "dir", configDirPath)
+		log.Debug("got config dir", "dir", configDirPath)
 		return configDirPath, err
 	}
 
-	log.Error("failed to create config dir", "error", err)
+	log.Debug("failed to create config dir", "error", err)
 	return "", err
 }
 
@@ -92,7 +92,7 @@ func (c *Config) Write() error {
 		return err
 	}
 
-	log.Info("written config", "path", filePath)
+	log.Debug("written config", "path", filePath)
 	return nil
 }
 
@@ -105,7 +105,7 @@ func (c *Config) Read() error {
 		return err
 	}
 
-	log.Info("loading config file...")
+	log.Debug("loading config file...")
 	configFile, err := os.Open(filePath)
 	if err != nil {
 		return err

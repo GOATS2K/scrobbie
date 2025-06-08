@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/log"
 	"github.com/goats2k/scrobbie/internal/config"
+	"github.com/goats2k/scrobbie/internal/plex"
 	"github.com/joho/godotenv"
 )
 
@@ -20,12 +21,9 @@ func main() {
 		config.CreateConfigDirectory()
 	}
 
-	if config.Plex.NeedsConfiguring() {
-		config.Plex.Configure()
-	}
-
-	if config.LastFm.NeedsConfiguring() {
-		config.LastFm.Configure()
+	plexConfigurator := plex.NewConfigurator(config.Plex)
+	if plexConfigurator.NeedsConfiguring() {
+		plexConfigurator.Configure()
 	}
 
 	if err := config.Write(); err != nil {
