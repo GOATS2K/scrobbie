@@ -48,8 +48,10 @@ func AddQuery(u *url.URL, key string, value string) {
 }
 
 func doRequest[T any](c *PlexClient, req *http.Request) (*T, error) {
-	if c.Config.AuthToken != "" {
-		AddQuery(req.URL, "X-Plex-Token", c.Config.AuthToken)
+	if c.Config.UserAuthToken != "" && req.URL.Hostname() == "plex.tv" {
+		AddQuery(req.URL, "X-Plex-Token", c.Config.UserAuthToken)
+	} else if c.Config.ServerAuthToken != "" {
+		AddQuery(req.URL, "X-Plex-Token", c.Config.ServerAuthToken)
 	}
 
 	req.Header.Add("Accept", "application/json")

@@ -19,7 +19,8 @@ type LastFmConfig struct {
 
 type PlexConfig struct {
 	ServerUrl        string `json:"server_url"`
-	AuthToken        string `json:"auth_token"`
+	UserAuthToken    string `json:"user_auth_token"`   // for plex.tv requests
+	ServerAuthToken  string `json:"server_auth_token"` // for server requests
 	LibrarySectionID int    `json:"library_section_id"`
 	ClientIdentifier string `json:"client_identifier"`
 }

@@ -25,7 +25,7 @@ func NewConfigurator(config *config.PlexConfig) *PlexConfigurator {
 }
 
 func (c *PlexConfigurator) NeedsConfiguring() bool {
-	return c.Config.AuthToken == "" || c.Config.ServerUrl == "" || c.Config.ClientIdentifier == "" || c.Config.LibrarySectionID == 0
+	return c.Config.UserAuthToken == "" || c.Config.ServerAuthToken == "" || c.Config.ServerUrl == "" || c.Config.ClientIdentifier == "" || c.Config.LibrarySectionID == 0
 }
 
 func (c *PlexConfigurator) Configure() {
@@ -41,12 +41,12 @@ func (c *PlexConfigurator) Configure() {
 		os.Exit(1)
 	}
 	// user's access token - valid for server if they're the owner
-	c.Config.AuthToken = authToken
+	c.Config.UserAuthToken = authToken
 
 	// 3. fetch server list
 	server, address := selectServer(client)
 	c.Config.ServerUrl = address.URI
-	c.Config.AuthToken = server.AccessToken
+	c.Config.ServerAuthToken = server.AccessToken
 
 	// 4. select library
 	selectedLibrary := selectLibrary(client)
