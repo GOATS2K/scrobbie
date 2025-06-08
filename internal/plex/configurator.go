@@ -51,6 +51,8 @@ func (c *PlexConfigurator) Configure() {
 	// 4. select library
 	selectedLibrary := selectLibrary(client)
 	c.Config.LibrarySectionID = selectedLibrary
+
+	color.Green("Nice! Plex is configured.")
 }
 
 func selectLibrary(client *PlexClient) int {
@@ -102,21 +104,18 @@ func selectServer(client *PlexClient) (*PlexResourceDevice, *PlexResourceDeviceC
 	}
 
 	servers := util.Filter(resources.Devices, func(t *PlexResourceDevice) bool {
-		return t.Provides == "server"
+		return t.Provides == "server" && t.Owned == "1"
 	})
 
 	if len(servers) == 0 {
-		color.Red("No servers found on account.")
+		color.Red("No owned servers found on your account.")
+		color.Red("Unfortunately, this means that Scrobbie can not get your playback history.")
 		os.Exit(2)
 	}
 
 	var options []huh.Option[*PlexResourceDevice]
 	for _, server := range servers {
-		var title string
-		title = server.Name
-		if server.Owned != "1" {
-			title += " (Guest)"
-		}
+		title := server.Name
 		options = append(options, huh.NewOption(title, server))
 	}
 
