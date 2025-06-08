@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/log"
@@ -16,7 +17,7 @@ import (
 type Plex interface {
 	GetPin() (response *PlexPinResponse, err error)
 	GetUser(pinId int) (response *PlexPinResponse, err error)
-	GetServers()
+	GetResources() (resp *PlexResourcesResponse, err error)
 	GetLibraries()
 	GetPlaybackHistory()
 }
@@ -70,7 +71,7 @@ func doRequest[T any](c *PlexClient, req *http.Request) (*T, error) {
 		defer resp.Body.Close()
 
 		var response T
-		if resp.Header.Get("Content-Type") == "application/xml" {
+		if strings.Contains(resp.Header.Get("Content-Type"), "application/xml") {
 			if err := xml.NewDecoder(resp.Body).Decode(&response); err != nil {
 				return nil, err
 			}
@@ -98,8 +99,11 @@ func (c *PlexClient) GetUser(pinId int) (resp *PlexPinResponse, err error) {
 	return doRequest[PlexPinResponse](c, req)
 }
 
-func (c *PlexClient) GetServers() {
-
+func (c *PlexClient) GetResources() (resp *PlexResourcesResponse, err error) {
+	route := "/api/resources"
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", PlexUrl, route), nil)
+	AddQuery(req.URL, "includeHttps", "1")
+	return doRequest[PlexResourcesResponse](c, req)
 }
 
 func (c *PlexClient) GetLibraries() {
