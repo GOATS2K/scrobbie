@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,14 +24,16 @@ type Plex interface {
 }
 
 type PlexClient struct {
-	Config *config.PlexConfig
+	Config       *config.PlexConfig
+	LastSyncDate time.Time
 }
 
 var PlexUrl string = "https://plex.tv"
 
-func NewClient(config *config.PlexConfig) *PlexClient {
+func NewClient(config *config.PlexConfig, lastSyncDate time.Time) *PlexClient {
 	return &PlexClient{
-		Config: config,
+		Config:       config,
+		LastSyncDate: lastSyncDate,
 	}
 }
 
@@ -114,10 +117,17 @@ func (c *PlexClient) GetLibraries() (resp *PlexLibrarySectionResponse, err error
 	return doRequest[PlexLibrarySectionResponse](c, req)
 }
 
-func (c *PlexClient) GetUsers() {
+func (c *PlexClient) GetPlaybackHistory() (resp *PlexSessionHistoryResponse, err error) {
+	route := "/status/sessions/history/all"
 
-}
-
-func (c *PlexClient) GetPlaybackHistory() {
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", c.Config.ServerUrl, route), nil)
+	if !c.LastSyncDate.IsZero() {
+		unixTime := c.LastSyncDate.Unix()
+		AddQuery(req.URL, "viewedAt>", strconv.Itoa(int(unixTime)))
+	}
+	AddQuery(req.URL, "librarySectionID", strconv.Itoa(c.Config.LibrarySectionID))
 	// accountID is always 1 for the owner of the server
+	AddQuery(req.URL, "accountID", "1")
+
+	return doRequest[PlexSessionHistoryResponse](c, req)
 }

@@ -31,7 +31,7 @@ func (c *PlexConfigurator) NeedsConfiguring() bool {
 func (c *PlexConfigurator) Configure() {
 	c.Config.ClientIdentifier = generateClientIdentifier()
 
-	client := NewClient(c.Config)
+	client := NewClient(c.Config, time.Time{})
 
 	// 1. create plex login pin
 	// 2. wait for user to login
@@ -52,7 +52,7 @@ func (c *PlexConfigurator) Configure() {
 	selectedLibrary := selectLibrary(client)
 	c.Config.LibrarySectionID = selectedLibrary
 
-	color.Green("Nice! Plex is configured.")
+	color.Green("Plex is configured.")
 }
 
 func selectLibrary(client *PlexClient) int {

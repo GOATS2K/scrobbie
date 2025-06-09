@@ -1,5 +1,10 @@
 package util
 
+import (
+	"strconv"
+	"time"
+)
+
 func GetItemOrNil[T any](c []T, predicate func(*T) bool) *T {
 	for _, item := range c {
 		if predicate(&item) {
@@ -19,4 +24,13 @@ func Filter[T any](c []T, predicate func(*T) bool) []*T {
 	}
 
 	return resultList
+}
+
+func FromUnixTimestamp(s string) (time.Time, error) {
+	seconds, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return time.Time{}, err
+	}
+	unixTime := time.Unix(seconds, 0)
+	return unixTime, nil
 }
