@@ -14,12 +14,19 @@ import (
 )
 
 var httpClient *http.Client = &http.Client{
-	Jar:       http.DefaultClient.Jar,
-	Transport: http.DefaultTransport,
-	Timeout:   30 * time.Second,
+	Jar: http.DefaultClient.Jar,
+	Transport: &http.Transport{
+		Proxy: http.ProxyURL(getProxyUrl()),
+	},
+	Timeout: 30 * time.Second,
 }
 
 const USER_AGENT string = "scrobbie/0.1 (go-http-client/1.1)"
+
+func getProxyUrl() *url.URL {
+	proxyUrl, _ := url.Parse("http://127.0.0.1:8080")
+	return proxyUrl
+}
 
 func AddQuery(u *url.URL, key string, value string) {
 	q := u.Query()

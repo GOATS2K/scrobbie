@@ -33,13 +33,13 @@ func (lc *LastFmConfigurator) Configure() {
 
 	// 1. Set API Key
 	huh.NewInput().
-		Title("Input your Last.fm API Key").
+		Title("Input your API key").
 		Value(&lc.Config.ApiKey).
 		Run()
 
-	// // 2. Set API Secret
+	// 2. Set API Secret
 	huh.NewInput().
-		Title("Input your Last.fm API Secret").
+		Title("Input your shared secret").
 		Value(&lc.Config.ApiSecret).
 		Run()
 

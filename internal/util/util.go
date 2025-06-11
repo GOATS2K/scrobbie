@@ -2,8 +2,25 @@ package util
 
 import (
 	"strconv"
+	"strings"
 	"time"
 )
+
+type UnixTimestamp time.Time
+
+func (u *UnixTimestamp) UnmarshalJSON(b []byte) (err error) {
+	s := strings.Trim(string(b), "\"")
+	unixTime, err := FromUnixTimestamp(s)
+	if err != nil {
+		return err
+	}
+	*u = UnixTimestamp(unixTime)
+	return nil
+}
+
+func (u *UnixTimestamp) Time() time.Time {
+	return time.Time(*u)
+}
 
 func GetItemOrNil[T any](c []T, predicate func(*T) bool) *T {
 	for _, item := range c {
