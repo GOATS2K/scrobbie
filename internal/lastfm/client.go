@@ -114,6 +114,23 @@ func (lc *LastFmClient) GetSessionKey(token string) (*LastFmSession, error) {
 	return doRequest[LastFmSession](lc, req)
 }
 
+func getIgnoredMessage(code string) string {
+	switch code {
+	case "1":
+		return "Artist was ignored"
+	case "2":
+		return "Track was ignored"
+	case "3":
+		return "Timestamp was too old"
+	case "4":
+		return "Timestamp was too new"
+	case "5":
+		return "Daily scrobble limit exceeded"
+	default:
+		return ""
+	}
+}
+
 func (lc *LastFmClient) Scrobble(track *LastFmScrobbleRequest) (*LastFmScrobbleResponse, error) {
 	track.Method = "track.scrobble"
 	track.SessionKey = lc.Config.SessionKey
@@ -134,5 +151,11 @@ func (lc *LastFmClient) Scrobble(track *LastFmScrobbleRequest) (*LastFmScrobbleR
 	req, _ := http.NewRequest(http.MethodPost, API_URL, bytes.NewBufferString(data.Encode()))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-	return doRequest[LastFmScrobbleResponse](lc, req)
+	resp, err := doRequest[LastFmScrobbleResponse](lc, req)
+	if err != nil {
+		return resp, err
+	}
+
+	resp.Scrobbles.Scrobble.IgnoredMessage.Text = getIgnoredMessage(resp.Scrobbles.Scrobble.IgnoredMessage.Code)
+	return resp, nil
 }
