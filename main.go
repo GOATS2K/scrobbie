@@ -35,18 +35,31 @@ func main() {
 		color.Red(fmt.Sprintf("Failed to write config: %s", err))
 	}
 
+	if config.LastSyncDate.IsZero() {
+		fmt.Println("Last.fm only allows us to scrobble tracks that were played 2 weeks ago or sooner.")
+		day := 24 * time.Hour
+		twoWeeksAgo := time.Now().Add(-(14 * day))
+		fmt.Printf("Getting tracks from: %s\n", twoWeeksAgo.Format(time.DateOnly))
+		config.LastSyncDate = twoWeeksAgo
+	}
+
 	plexClient := plex.NewClient(config.Plex, config.LastSyncDate)
 	lastFmClient := lastfm.New(config.LastFm)
 
+	fmt.Println("Getting playback history from Plex...")
 	history, err := plexClient.GetPlaybackHistory()
 	if err != nil {
 		color.Red(fmt.Sprintf("Failed to get playback history from Plex: %s", err.Error()))
 		os.Exit(1)
 	}
 
-	sample := history.MediaContainer.Metadata
-	for _, item := range sample {
-		msg := fmt.Sprintf("[%s] %s - %s - %s", time.Time.Format(item.ViewedAt.Time(), time.RFC3339), item.Artist, item.Track, item.Album)
+	if len(history.MediaContainer.Metadata) == 0 {
+		color.Yellow("No new tracks found.")
+		return
+	}
+
+	for _, item := range history.MediaContainer.Metadata {
+		msg := fmt.Sprintf("[%s] %s - %s", time.Time.Format(item.ViewedAt.Time(), time.RFC3339), item.Artist, item.Track)
 		color.Magenta(msg)
 
 		scrobbleRequest := &lastfm.LastFmScrobbleRequest{
@@ -70,6 +83,4 @@ func main() {
 	}
 
 	config.Write()
-
-	// filter on last sync date (none by default? or allow users to set a sync range?)
 }
