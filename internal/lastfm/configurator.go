@@ -52,7 +52,7 @@ func (lc *LastFmConfigurator) Configure() {
 	}
 
 	authUrl := fmt.Sprintf("https://last.fm/api/auth/?api_key=%s&token=%s", lc.Config.ApiKey, token.Token)
-	fmt.Printf("Nice! Your credentials worked. Now, please login to the following URL in your browser.")
+	fmt.Println("Nice! Your credentials worked. Now, please login to the following URL in your browser.")
 	fmt.Println()
 	color.Magenta(authUrl)
 	fmt.Println()

@@ -36,6 +36,14 @@ func createBodySignature(lc *LastFmClient, req *http.Request) *http.Request {
 	reqBody, _ := io.ReadAll(req.Body)
 	params, _ := url.ParseQuery(string(reqBody))
 
+	signature := createSignature(params)
+	signatureInHex := getSignatureHex(lc, signature)
+	params.Add("api_sig", signatureInHex)
+	newReq, _ := http.NewRequest(req.Method, req.URL.String(), bytes.NewBufferString(string(params.Encode())))
+	return newReq
+}
+
+func createSignature(params url.Values) string {
 	var keys sort.StringSlice
 	for key := range params {
 		if key == "format" {
@@ -50,30 +58,12 @@ func createBodySignature(lc *LastFmClient, req *http.Request) *http.Request {
 		signature += key
 		signature += params.Get(key)
 	}
-	signatureInHex := getSignatureHex(lc, signature)
-	params.Add("api_sig", signatureInHex)
-	newReq, _ := http.NewRequest(req.Method, req.URL.String(), bytes.NewBufferString(string(params.Encode())))
-	return newReq
+	return signature
 }
 
 func createQueryParamSignature(lc *LastFmClient, req *http.Request) *http.Request {
 	queryParams := req.URL.Query()
-
-	var keys sort.StringSlice
-	for key := range queryParams {
-		if key == "format" {
-			continue
-		}
-		keys = append(keys, key)
-	}
-	keys.Sort()
-
-	var signature string
-	for _, key := range keys {
-		signature += key
-		signature += queryParams.Get(key)
-	}
-
+	signature := createSignature(queryParams)
 	signatureInHex := getSignatureHex(lc, signature)
 	httpclient.AddQuery(req.URL, "api_sig", signatureInHex)
 
@@ -137,6 +127,7 @@ func (lc *LastFmClient) Scrobble(track *LastFmScrobbleRequest) (*LastFmScrobbleR
 	track.ApiKey = lc.Config.ApiKey
 	track.Format = "json"
 
+	// surely there's a better way of doing this
 	data := url.Values{}
 
 	data.Set("method", track.Method)
