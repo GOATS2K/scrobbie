@@ -36,7 +36,9 @@ func main() {
 	}
 
 	if config.LastSyncDate.IsZero() {
-		fmt.Println("Last.fm only allows us to scrobble tracks that were played 2 weeks ago or sooner.")
+		fmt.Println("Last.fm only supports tracks that were played 2 weeks ago or earlier.")
+		fmt.Println("https://support.last.fm/t/retroactively-scrobble-past-tracks-with-original-date/4588/36")
+		fmt.Println()
 		day := 24 * time.Hour
 		twoWeeksAgo := time.Now().Add(-(14 * day))
 		fmt.Printf("Getting tracks from: %s\n", twoWeeksAgo.Format(time.DateOnly))
