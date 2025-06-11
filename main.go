@@ -44,7 +44,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	sample := history.MediaContainer.Metadata[:10]
+	sample := history.MediaContainer.Metadata
 	for _, item := range sample {
 		msg := fmt.Sprintf("[%s] %s - %s - %s", time.Time.Format(item.ViewedAt.Time(), time.RFC3339), item.Artist, item.Track, item.Album)
 		color.Magenta(msg)
@@ -61,9 +61,12 @@ func main() {
 		}
 		if scrobble.Scrobbles.Scrobble.IgnoredMessage.Code != "0" {
 			color.Yellow(fmt.Sprintf("Scrobble ignored: %s", scrobble.Scrobbles.Scrobble.IgnoredMessage.Text))
+		} else {
+			color.Green("Scrobble success!")
 		}
 		fmt.Println("-------------")
-		config.LastSyncDate = item.ViewedAt.Time()
+		config.LastSyncDate = item.ViewedAt.Time().Add(1 * time.Second)
+		time.Sleep(1 * time.Second)
 	}
 
 	config.Write()
