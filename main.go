@@ -35,12 +35,13 @@ func main() {
 		color.Red(fmt.Sprintf("Failed to write config: %s", err))
 	}
 
-	if config.LastSyncDate.IsZero() {
+	day := 24 * time.Hour
+	twoWeeksAgo := time.Now().Add(-(14 * day))
+
+	if config.LastSyncDate.IsZero() || config.LastSyncDate.Before(twoWeeksAgo) {
 		fmt.Println("Last.fm only supports tracks that were played 2 weeks ago or earlier.")
 		fmt.Println("https://support.last.fm/t/retroactively-scrobble-past-tracks-with-original-date/4588/36")
 		fmt.Println()
-		day := 24 * time.Hour
-		twoWeeksAgo := time.Now().Add(-(14 * day))
 		fmt.Printf("Getting tracks from: %s\n", twoWeeksAgo.Format(time.DateOnly))
 		config.LastSyncDate = twoWeeksAgo
 	}
